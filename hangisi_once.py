@@ -1,5 +1,5 @@
 
-import os,sys
+import os, sys, os.path
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QFileDialog, QPushButton, QLineEdit, QComboBox, QLabel, QRadioButton
 from PyQt5.QtWidgets import QAction , QApplication, QMainWindow, QGridLayout, QWidget, QSizePolicy
@@ -151,12 +151,12 @@ class loginWindow(QMainWindow):
         
         self.comboBox = QComboBox(self)
         self.comboBox.addItem('Seciniz')
-        self.comboBox.addItem('Ahmet')
-        self.comboBox.addItem('Mehmet')
-        self.comboBox.addItem('Hatce')
-        self.comboBox.addItem('Fatma')
-        self.comboBox.addItem('Wolverine')
-        self.comboBox.addItem('Öreke')
+        self.comboBox.addItem('Ahmet Issın')
+#        self.comboBox.addItem('Mehmet')
+#        self.comboBox.addItem('Hatce')
+#        self.comboBox.addItem('Fatma')
+#        self.comboBox.addItem('Wolverine')
+#        self.comboBox.addItem('Öreke')
 
         self.comboBox.setGeometry(100,65,200,30)         
         self.comboBox.activated[str].connect(self.select_user)
@@ -201,6 +201,20 @@ class loginWindow(QMainWindow):
             self.hide()        
 #            self.mainGui.show()
             self.mainGui.showMaximized()  
+
+            user_file = path +"/" + self.username+'.txt'
+            if os.path.exists(user_file):
+                print(user_file +' exists.')
+                file = open(user_file, 'r')
+                text = file.read()
+                print(text)
+                
+            else:
+                print(user_file +' does not exist.')
+                file = open(user_file, 'w')
+                text = 'Ahmet Issın in tahminleri'
+                file.write(text)
+                file.close
         
 #            file = open(name, 'r')
 #            print('na het inlezen gelukt') # for debugging
