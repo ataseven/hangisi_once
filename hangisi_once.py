@@ -151,12 +151,14 @@ class loginWindow(QMainWindow):
         
         self.comboBox = QComboBox(self)
         self.comboBox.addItem('Seciniz')
-        self.comboBox.addItem('Ahmet Issın')
-#        self.comboBox.addItem('Mehmet')
-#        self.comboBox.addItem('Hatce')
-#        self.comboBox.addItem('Fatma')
-#        self.comboBox.addItem('Wolverine')
-#        self.comboBox.addItem('Öreke')
+
+        users_file = open(os.getcwd()+"/users.txt","r")        
+
+        for line in users_file.readlines():
+            self.comboBox.addItem(line)
+        
+        users_file.close()
+        
 
         self.comboBox.setGeometry(100,65,200,30)         
         self.comboBox.activated[str].connect(self.select_user)
@@ -190,10 +192,10 @@ class loginWindow(QMainWindow):
         path = QFileDialog.getExistingDirectory(self, "Klasör Seç",'',   QFileDialog.ShowDirsOnly )
         if path !='':
             print(path +" :")  # for debugging
-            dirs = os.listdir( path )
+            files = sorted(os.listdir( path ))
 
             # This would print all the files and directories
-            for file in dirs:
+            for file in files:
                 extension = file[-4:len(file)]
                 if  extension == '.jpg' or extension == '.JPG' or extension =='.bmp' or extension =='.BMP' or extension =='.png' or extension == 'PNG':
                     print(file)
@@ -210,9 +212,9 @@ class loginWindow(QMainWindow):
                 print(text)
                 
             else:
-                print(user_file +' does not exist.')
+                print(user_file +' did not exist. Newly created.\n')
                 file = open(user_file, 'w')
-                text = 'Ahmet Issın in tahminleri'
+                text = self.username + ' in tahminleri'
                 file.write(text)
                 file.close
         
@@ -253,7 +255,12 @@ class loginWindow(QMainWindow):
         self.comboBox.addItem(kullanici_adi)
         
         self.username = kullanici_adi
-        self.comboBox.setCurrentIndex(self.comboBox.count()-1)        
+        self.comboBox.setCurrentIndex(self.comboBox.count()-1)    
+
+        users_file = open(os.getcwd()+"/users.txt","a")
+        users_file.write(self.username +'\n')
+        users_file.close()
+
         self.textEdit.clear()
         self.textEdit.setEnabled(False)
         self.comboBox.setEnabled(True)
