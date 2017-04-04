@@ -5,8 +5,46 @@ from PyQt5.QtWidgets import QFileDialog, QPushButton, QLineEdit, QComboBox, QLab
 from PyQt5.QtWidgets import QAction , QApplication, QMainWindow, QGridLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import QCoreApplication, Qt
 
+from datetime import date
+
 #from PyQt4 import *
 
+class hasta():
+    def __init__(self):
+        self.text = ''
+        self.yas = 0;
+        self.id  = 0;
+        self.tarihler = []
+        self.cinsiyet = ''
+    
+    def extract_id(self,text):
+        # takes a string and reads until the first underscore "_" character, then converts it to number
+        pass
+    
+    def kayit_ekle(self,text):
+        groups = text.split('_')
+        self.id = int( groups[0] )
+        self.yas = int( groups[1] )
+        gun = int( groups[2][0:2] )
+        ay  = int( groups[2][2:4] )
+        yil = int( groups[2][4:6] )       
+        self.cinsiyet = int( groups[3] )
+        
+        self.tarihler.append[yil, ay, gun]
+        
+    def compute_days(self,year1, month1, day1, year2, month2, day2):        
+        d0 = date(year1, month1, day1)
+        d1 = date(year2,month2, day2)
+        if d0 > d1:
+            delta = d0 - d1            
+        elif d1 > d0:
+            delta = d1 - d0
+        else:
+            delta = 0
+
+        return delta.days
+        
+        
 class mainWindow(QWidget):
     def __init__(self):
         super(mainWindow, self).__init__()
