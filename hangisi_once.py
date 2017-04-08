@@ -69,12 +69,12 @@ class mainWindow(QWidget):
         
 #        self.pic1.setGeometry(30, 20, 900, 800)
         #use full ABSOLUTE path to the image, not relative
-        imageName1 = "/home/yoldas/Pictures/rengarenk_agac_cropped.jpg"
-        self.image1 = QPixmap(imageName1)        
+#        imageName1 = "/home/yoldas/Pictures/rengarenk_agac_cropped.jpg"
+#        self.image1 = QPixmap(imageName1)        
 
         self.pic1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.pic1.setMinimumSize(100, 100)        
-        self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
+#        self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
 
         self.radio1 = QRadioButton('Goruntu 1',self)
         self.radio1.clicked.connect(self.mark1st)
@@ -85,10 +85,10 @@ class mainWindow(QWidget):
         
 #        self.pic2.setGeometry(970, 20, 900, 800)
         #use full ABSOLUTE path to the image, not relative
-        imageName2 = "/home/yoldas/Pictures/rengarenk_agac_cropped.jpg"
-        self.image2 = QPixmap(imageName2)
+#        imageName2 = "/home/yoldas/Pictures/rengarenk_agac_cropped.jpg"
+#        self.image2 = QPixmap(imageName2)
 #        self.pic2.setPixmap(self.image2)
-        self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
+#        self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
 
         self.pic2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.pic2.setMinimumSize(100, 100)
@@ -176,11 +176,24 @@ class mainWindow(QWidget):
                 
                 ikili_file.close()
                 
-                ikili_file = open(ikili_filename , 'r')
-                file_content = ikili_file.read()
-                lines = file_content.split('\n')    # dosya satırlarını bir array haline getir.
-                self.ikililer = lines[:-1]          # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
-                
+            ikili_file = open(ikili_filename , 'r')
+            file_content = ikili_file.read()
+            lines = file_content.split('\n')    # dosya satırlarını bir array haline getir.
+            self.ikililer = lines[:-1]          # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
+                            
+            left_img_filename  = self.calisma_klasoru + '/' + self.ikililer[self.current_pair_index].split(' ')[0]
+            right_img_filename = self.calisma_klasoru + '/' + self.ikililer[self.current_pair_index].split(' ')[1]
+                        
+            
+            self.image1 = QPixmap(left_img_filename)
+#           self.pic1.setPixmap(self.image1)
+            self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
+
+            self.image2 = QPixmap(right_img_filename)
+#           self.pic2.setPixmap(self.image2)
+            self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
+            
+            
     def set_user(self, username):
         self.username = username;
 
@@ -192,7 +205,7 @@ class mainWindow(QWidget):
             file = open(self.user_file, 'r')
             file_content = file.read()
             lines = file_content.split('\n')   # dosya satırlarını bir array haline getir.
-            lines = lines[:-1]  # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
+            lines = lines[:-1]  # yazma şeklim ve ilk satırdaki açıklama yüzünden fazladan iki satır geliyor, onu çıkar
             num_prev_entries = len(lines)
             self.current_pair_index = num_prev_entries # normalde num_prev_entries-1 olması lazım, ama bir sonraki ikilinin indeksini açılışta ayarlamayı tercih ettim.
             
