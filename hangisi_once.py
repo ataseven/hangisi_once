@@ -3,7 +3,7 @@ import os, sys, os.path
 import itertools, random
 
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QFileDialog, QPushButton, QLineEdit, QComboBox, QLabel, QRadioButton
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QPushButton, QLineEdit, QComboBox, QLabel, QRadioButton
 from PyQt5.QtWidgets import QAction , QApplication, QMainWindow, QGridLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import QCoreApplication, Qt
 
@@ -28,12 +28,13 @@ class hasta():
     # hasta id'si ayni olan imajlar içinde, alfabetik sırada son sırada olan dosyada yazan hasta bilgisi kullanılır.
     def goruntu_ekle(self,text):
         groups = text.split('_')
+#        print(groups)
         self.id = int( groups[0] )
         self.yas = int( groups[1] )
         gun = int( groups[2][0:2] )
         ay  = int( groups[2][2:4] )
-        yil = int( groups[2][4:6] )       
-        self.cinsiyet = groups[3]
+        yil = int( groups[2][4:8] )       
+        self.cinsiyet = groups[3].split('.')[0]
         
         self.tarihler.append([yil, ay, gun])
         self.dosya_isimleri.append(text)
@@ -70,7 +71,7 @@ class mainWindow(QWidget):
 #        self.pic1.setGeometry(30, 20, 900, 800)
         #use full ABSOLUTE path to the image, not relative
 #        imageName1 = "/home/yoldas/Pictures/rengarenk_agac_cropped.jpg"
-#        self.image1 = QPixmap(imageName1)        
+        self.image1 = QPixmap(100,100)        
 
         self.pic1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.pic1.setMinimumSize(100, 100)        
@@ -86,7 +87,7 @@ class mainWindow(QWidget):
 #        self.pic2.setGeometry(970, 20, 900, 800)
         #use full ABSOLUTE path to the image, not relative
 #        imageName2 = "/home/yoldas/Pictures/rengarenk_agac_cropped.jpg"
-#        self.image2 = QPixmap(imageName2)
+        self.image2 = QPixmap(100,100)
 #        self.pic2.setPixmap(self.image2)
 #        self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
 
@@ -96,6 +97,17 @@ class mainWindow(QWidget):
         self.radio2 = QRadioButton('Goruntu 2',self)
 #        self.radio2.move(1400,850)
         self.radio2.clicked.connect(self.mark2nd)
+
+        self.infoBox = QMessageBox() ##Message Box that doesn't run
+
+        self.infoBox.setIcon(QMessageBox.Information)
+#        self.infoBox.setText("Bu klasör tamam")
+        self.infoBox.setText("Bu klasördeki bütün verileri oyladınız.")
+#        self.infoBox.setInformativeText("Bu klasordeki bütün verileri oyladınız.")        
+        self.infoBox.setWindowTitle("Tamamlandı")
+#        self.infoBox.setDetailedText("Daha ne detay vereyim, anlattım işte...")
+        self.infoBox.setStandardButtons(QMessageBox.Ok)        
+        self.infoBox.setEscapeButton(QMessageBox.Close)   
 
         
         grid = QGridLayout()   
@@ -113,29 +125,124 @@ class mainWindow(QWidget):
         self.hastalar = []
         self.calisma_klasoru = '';
         self.username = ''
-        self.current_pair_index = 0
+        self.current_pair_index = -1
         self.ikililer = []
         self.user_file =''
+        
+        self.left_img_filename =''
+        self.right_img_filename =''        
 
     def home(self):
         self.show()
         
+#    Kullanıcı "soldaki görüntü önce" derse yapılacaklar
     def mark1st(self):
-        pass
-#        print('Birinci secildi') 
+        file = open(self.user_file, 'a')
+        tmp_hasta = hasta()
+        
+        tmp_hasta.goruntu_ekle(self.left_img_filename)
+        tmp_hasta.goruntu_ekle(self.right_img_filename)
+        
+#        soldaki görüntünün tarihi
+        yil1 = tmp_hasta.tarihler[0][0]
+        ay1 = tmp_hasta.tarihler[0][1]
+        gun1 = tmp_hasta.tarihler[0][2]
+        
+        yil2 = tmp_hasta.tarihler[1][0]
+        ay2 = tmp_hasta.tarihler[1][1]
+        gun2 = tmp_hasta.tarihler[1][2]
+        
+        d0 = date(yil1, ay1, gun1)
+#        print(d0)
+#       sağdaki görüntünün tarihi
+        d1 = date(yil2, ay2, gun2)
+#        print(d1)
+        
+        if d0 > d1:  # doğru cevap : "sağdaki önce" ama kullanıcı "soldaki önce" demiş ki şu an içinde bulunduğumuz fonksiyona girmişiz
+            delta = d1 - d0
+            tahmin = 0  # Kullanıcı hatalı tahminde bulundu
+        elif d1 > d0:  # doğru cevap : "soldaki önce". Kullanıcı da "soldaki önce" demiş ki şu an içinde bulunduğumuz fonksiyona girmişiz
+            delta = d1 - d0
+            tahmin = 1  # Kullanıcı doğru tahminde bulundu
+        else:
+            delta = d1 - d0
+            tahmin = 1 # Aynı günde iki farklı görüntü varsa kullanıcı doğru bilmiş sayılıyor.
+
+        zaman_farki = delta.days
+        
+        file.write(str(tmp_hasta.id) + ',' + str(tmp_hasta.yas) + ',' + tmp_hasta.cinsiyet + ',' + str(zaman_farki) + ',' + str(tahmin) + '\n' )
+        file.close()
+        
+        if self.current_pair_index < len(self.ikililer)-1:
+            self.show_next_pair()
+        else:            
+            self.radio1.setEnabled(False)
+            self.radio2.setEnabled(False)
+            self.infoBox.exec_()
+        
+        self.radio1.setChecked(False)
     
+#    Kullanıcı "sağdaki görüntü önce" derse yapılacaklar
     def mark2nd(self):
-        pass
+        file = open(self.user_file, 'a')
+        tmp_hasta = hasta()
+        
+        tmp_hasta.goruntu_ekle(self.left_img_filename)
+        tmp_hasta.goruntu_ekle(self.right_img_filename)
+        
+#        soldaki görüntünün tarihi
+        yil1 = tmp_hasta.tarihler[0][0]
+        ay1 = tmp_hasta.tarihler[0][1]
+        gun1 = tmp_hasta.tarihler[0][2]
+        
+        yil2 = tmp_hasta.tarihler[1][0]
+        ay2 = tmp_hasta.tarihler[1][1]
+        gun2 = tmp_hasta.tarihler[1][2]
+        
+        d0 = date(yil1, ay1, gun1)
+#        print(d0)
+        
+#       sağdaki görüntünün tarihi
+        d1 = date(yil2, ay2, gun2)
+#        print(d1)
+
+#        print(' \n')
+        
+        if d0 > d1:  # doğru cevap : "sağdaki önce". Kullanıcı da "sağdaki önce" demiş ki şu an içinde bulunduğumuz fonksiyona girmişiz
+            delta = d1 - d0
+            tahmin = 1  # Kullanıcı doğru tahminde bulundu
+        elif d1 > d0:  # doğru cevap : "sağdaki önce" ama kullanıcı "soldaki önce" demiş ki şu an içinde bulunduğumuz fonksiyona girmişiz
+            delta = d1 - d0
+            tahmin = 0  # Kullanıcı yanlış tahminde bulundu
+        else:
+            delta = d1 - d0
+            tahmin = 1 # Aynı günde iki farklı görüntü varsa kullanıcı doğru bilmiş sayılıyor.
+
+        zaman_farki = delta.days
+        
+        
+        file.write(str(tmp_hasta.id) + ',' + str(tmp_hasta.yas) + ',' + tmp_hasta.cinsiyet + ',' + str(zaman_farki) + ',' + str(tahmin) + '\n' )
+        
+        file.close()
+        
+        if self.current_pair_index < len(self.ikililer)-1:
+            self.show_next_pair()
+        else:            
+            self.radio1.setEnabled(False)
+            self.radio2.setEnabled(False)
+            self.infoBox.exec_()
+            
+        self.radio2.setChecked(False)
 #        print('İkinci secildi') 
         
     def set_calisma_klasoru(self, text):
         self.calisma_klasoru = text;
         current_hasta_id = -1
-        ikili_filename = self.calisma_klasoru +'/ikililer.txt'
+        self.ikili_filename = self.calisma_klasoru +'/ikililer.txt'
         if self.calisma_klasoru !='':
-            print(self.calisma_klasoru +" :")  # for debugging
+#            print(self.calisma_klasoru +" :")  # for debugging
             
-            if os.path.exists(ikili_filename):
+            if os.path.exists(self.ikili_filename):
                 pass
             
             else:
@@ -176,23 +283,25 @@ class mainWindow(QWidget):
                 
                 ikili_file.close()
                 
-            ikili_file = open(ikili_filename , 'r')
+            ikili_file = open(self.ikili_filename , 'r')
             file_content = ikili_file.read()
+            ikili_file.close()
+            
             lines = file_content.split('\n')    # dosya satırlarını bir array haline getir.
             self.ikililer = lines[:-1]          # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
                             
-            left_img_filename  = self.calisma_klasoru + '/' + self.ikililer[self.current_pair_index].split(' ')[0]
-            right_img_filename = self.calisma_klasoru + '/' + self.ikililer[self.current_pair_index].split(' ')[1]
-                        
-            
-            self.image1 = QPixmap(left_img_filename)
-#           self.pic1.setPixmap(self.image1)
-            self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
-
-            self.image2 = QPixmap(right_img_filename)
-#           self.pic2.setPixmap(self.image2)
-            self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
-            
+#            self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
+#            self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
+#                        
+#            
+#            self.image1 = QPixmap(self.calisma_klasoru + '/' +self.left_img_filename)
+##           self.pic1.setPixmap(self.image1)
+#            self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
+#
+#            self.image2 = QPixmap(self.calisma_klasoru + '/' +self.right_img_filename)
+##           self.pic2.setPixmap(self.image2)
+#            self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
+#            
             
     def set_user(self, username):
         self.username = username;
@@ -207,7 +316,7 @@ class mainWindow(QWidget):
             lines = file_content.split('\n')   # dosya satırlarını bir array haline getir.
             lines = lines[:-1]  # yazma şeklim ve ilk satırdaki açıklama yüzünden fazladan iki satır geliyor, onu çıkar
             num_prev_entries = len(lines)
-            self.current_pair_index = num_prev_entries # normalde num_prev_entries-1 olması lazım, ama bir sonraki ikilinin indeksini açılışta ayarlamayı tercih ettim.
+            self.current_pair_index = max(-1,num_prev_entries-2) # normalde num_prev_entries-1 olması lazım, ama bir sonraki ikilinin indeksini açılışta ayarlamayı tercih ettim.
             
 #            text = file.read()
 #            print(text)
@@ -215,13 +324,28 @@ class mainWindow(QWidget):
         else:
 #            print(self.user_file +' did not exist. Newly created.\n')
             file = open(self.user_file, 'w')
-            text = self.username + ' in tahminleri.'
+            text = self.username + ' in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru 0:yanlış)\n'
                         
             file.write(text)
             file.close                        
         
     def show_next_pair(self):
-        pass
+        self.current_pair_index = self.current_pair_index + 1
+        
+        self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
+        self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
+                        
+            
+        self.image1 = QPixmap(self.calisma_klasoru + '/' + self.left_img_filename)
+#       self.pic1.setPixmap(self.image1)
+        self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
+
+        self.image2 = QPixmap(self.calisma_klasoru + '/' + self.right_img_filename)
+#       self.pic2.setPixmap(self.image2)
+        self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
+        
+        self.radio1.setChecked(False)
+        self.radio2.setChecked(False)
         
     def resizeEvent(self,event):
         width  = QApplication.desktop().screen().rect().width()-30
@@ -300,10 +424,14 @@ class loginWindow(QMainWindow):
         self.comboBox = QComboBox(self)
         self.comboBox.addItem('Seciniz')
 
-        users_file = open(os.getcwd()+"/users.txt","r")        
+        if os.path.exists(os.getcwd()+"/users.txt"):
+            users_file = open(os.getcwd()+"/users.txt","r")
+            for line in users_file.readlines():
+                self.comboBox.addItem(line)            
+        else:
+            pass
 
-        for line in users_file.readlines():
-            self.comboBox.addItem(line)
+        
         
         users_file.close()
         
@@ -340,12 +468,21 @@ class loginWindow(QMainWindow):
         path = QFileDialog.getExistingDirectory(self, "Klasör Seç",'',   QFileDialog.ShowDirsOnly )
         
         self.mainGui.set_calisma_klasoru(path)
-        self.mainGui.set_user(self.username)
+        self.mainGui.set_user(self.username)     
 
         if path !='':
-            self.hide()        
-#            self.mainGui.show()
-            self.mainGui.showMaximized()  
+             
+            if self.mainGui.current_pair_index < len(self.mainGui.ikililer)-1:
+#                print([self.mainGui.current_pair_index, len(self.mainGui.ikililer)])
+                
+                self.hide()        
+#               self.mainGui.show()
+                self.mainGui.showMaximized() 
+                self.mainGui.show_next_pair()
+            else:
+                self.mainGui.hide()
+                self.show()                
+                self.mainGui.infoBox.exec_()                   
 
     def file_save(self):
         name, _ = QFileDialog.getSaveFileName(self,'Save File', options=QFileDialog.DontUseNativeDialog)

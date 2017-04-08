@@ -1,1 +1,13 @@
-Yoldaş Ataseven in tahminleri.
+Yoldaş Ataseven in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru 0:yanlış)
+3,45,E,-291,0
+3,45,E,74,1
+3,45,E,-616,0
+3,45,E,-365,0
+3,45,E,325,1
+3,45,E,690,1
+9,15,E,-58,0
+9,15,E,-271,0
+9,15,E,213,1
+11,25,K,365,1
+14,19,E,-89,0
+19,18,E,-31,0
