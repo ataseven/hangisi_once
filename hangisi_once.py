@@ -1,5 +1,7 @@
 
 import os, sys, os.path
+import itertools, random
+
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QFileDialog, QPushButton, QLineEdit, QComboBox, QLabel, QRadioButton
 from PyQt5.QtWidgets import QAction , QApplication, QMainWindow, QGridLayout, QWidget, QSizePolicy
@@ -12,25 +14,29 @@ from datetime import date
 class hasta():
     def __init__(self):
         self.text = ''
-        self.yas = 0;
-        self.id  = 0;
-        self.tarihler = []
+        self.yas = -1;
+        self.id  = -1;
         self.cinsiyet = ''
+        self.tarihler = []
+        self.dosya_isimleri = []
     
     def extract_id(self,text):
         # takes a string and reads until the first underscore "_" character, then converts it to number
         pass
     
-    def kayit_ekle(self,text):
+    # hem hasta bilgisini gunceller, hem de yeni kayit tarihi ekler. Bu demektir ki,
+    # hasta id'si ayni olan imajlar içinde, alfabetik sırada son sırada olan dosyada yazan hasta bilgisi kullanılır.
+    def goruntu_ekle(self,text):
         groups = text.split('_')
         self.id = int( groups[0] )
         self.yas = int( groups[1] )
         gun = int( groups[2][0:2] )
         ay  = int( groups[2][2:4] )
         yil = int( groups[2][4:6] )       
-        self.cinsiyet = int( groups[3] )
+        self.cinsiyet = groups[3]
         
-        self.tarihler.append[yil, ay, gun]
+        self.tarihler.append([yil, ay, gun])
+        self.dosya_isimleri.append(text)
         
     def compute_days(self,year1, month1, day1, year2, month2, day2):        
         d0 = date(year1, month1, day1)
@@ -44,6 +50,8 @@ class hasta():
 
         return delta.days
         
+    def getFileNames(self):
+        return self.dosya_isimleri
         
 class mainWindow(QWidget):
     def __init__(self):
@@ -101,6 +109,13 @@ class mainWindow(QWidget):
 
         self.setLayout(grid)      
         self.move(QApplication.desktop().screen().rect().center()- self.rect().center())
+        
+        self.hastalar = []
+        self.calisma_klasoru = '';
+        self.username = ''
+        self.current_pair_index = 0
+        self.ikililer = []
+        self.user_file =''
 
     def home(self):
         self.show()
@@ -112,6 +127,88 @@ class mainWindow(QWidget):
     def mark2nd(self):
         pass
 #        print('İkinci secildi') 
+        
+    def set_calisma_klasoru(self, text):
+        self.calisma_klasoru = text;
+        current_hasta_id = -1
+        ikili_filename = self.calisma_klasoru +'/ikililer.txt'
+        if self.calisma_klasoru !='':
+            print(self.calisma_klasoru +" :")  # for debugging
+            
+            if os.path.exists(ikili_filename):
+                pass
+            
+            else:
+                files = sorted(os.listdir( self.calisma_klasoru ))
+                ikili_file = open(self.calisma_klasoru +'/ikililer.txt', 'w')
+
+                # This would print all the files and directories
+                for filename in files:
+                    extension = filename[-4:len(filename)]
+                    
+                    if  extension == '.jpg' or extension == '.JPG' or extension =='.bmp' or extension =='.BMP' or extension =='.png' or extension == 'PNG':
+                        groups = filename.split('_')
+                        ID = int(groups[0])
+                        
+                        # eğer bu hastanın daha önce bir dosyası işlendiyse, o hasta ile ilgili yeni tarih ve dosya ismi ekle
+                        if current_hasta_id == ID and current_hasta_id >= 0: 
+                            self.hastalar[-1].goruntu_ekle(filename)
+                        
+                        else: 
+
+                            # bir önceki hastanın ikililerini belirle ve ikililer.txt dosyasına yaz.        
+                            if current_hasta_id >= 0:  # ilk hastadan öncesi yok. ilk hastaya özel muamele yapılıyo.
+                                for pair in itertools.combinations( self.hastalar[-1].getFileNames() , 2):
+                                    idx  = random.randint(0,1)
+                                    ikili_file.write( pair[idx] + ' ' + pair[1-idx] + '\n' )
+                            
+                            # yeni hasta bilgilerini oluşturmaya başla
+                            yeni_hasta = hasta()
+                            yeni_hasta.goruntu_ekle(filename)
+                            self.hastalar.append(yeni_hasta)
+                            current_hasta_id = ID
+                            
+                        if filename == files[-1]:   # son hastadan sonra hasta gelmediği için bunun da handle edilmesi lazım.
+                            for pair in itertools.combinations( yeni_hasta.getFileNames() , 2):
+                                idx  = random.randint(0,1)
+                                ikili_file.write( pair[idx] + ' ' + pair[1-idx] + '\n' )
+                            
+                
+                ikili_file.close()
+                
+                ikili_file = open(ikili_filename , 'r')
+                file_content = ikili_file.read()
+                lines = file_content.split('\n')    # dosya satırlarını bir array haline getir.
+                self.ikililer = lines[:-1]          # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
+                
+    def set_user(self, username):
+        self.username = username;
+
+        self.user_file = self.calisma_klasoru + "/" + self.username + '.txt'        
+                   
+        
+        if os.path.exists(self.user_file):
+#            print(self.user_file +' exists.')
+            file = open(self.user_file, 'r')
+            file_content = file.read()
+            lines = file_content.split('\n')   # dosya satırlarını bir array haline getir.
+            lines = lines[:-1]  # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
+            num_prev_entries = len(lines)
+            self.current_pair_index = num_prev_entries # normalde num_prev_entries-1 olması lazım, ama bir sonraki ikilinin indeksini açılışta ayarlamayı tercih ettim.
+            
+#            text = file.read()
+#            print(text)
+            
+        else:
+#            print(self.user_file +' did not exist. Newly created.\n')
+            file = open(self.user_file, 'w')
+            text = self.username + ' in tahminleri.'
+                        
+            file.write(text)
+            file.close                        
+        
+    def show_next_pair(self):
+        pass
         
     def resizeEvent(self,event):
         width  = QApplication.desktop().screen().rect().width()-30
@@ -207,9 +304,8 @@ class loginWindow(QMainWindow):
         
         self.mainGui = mainWindow()
 
-    def editor(self):
-        pass
     
+    # Var olan kullanıcı
     def markVarolan(self):
         self.textEdit.setEnabled(False)
         self.btnEkle.setEnabled(False)
@@ -217,6 +313,7 @@ class loginWindow(QMainWindow):
         self.comboBox.setEnabled(True)
         self.radioYeni.setChecked(False)
         
+    #Yeni kullanıcı
     def markYeni(self):
         self.textEdit.setEnabled(True)
         self.btnEkle.setEnabled(True)
@@ -228,41 +325,14 @@ class loginWindow(QMainWindow):
         # need to make name an tupple otherwise i had an error and app crashed
 #        name, _ = QFileDialog.getOpenFileName(self, 'Open File', options=QFileDialog.DontUseNativeDialog)
         path = QFileDialog.getExistingDirectory(self, "Klasör Seç",'',   QFileDialog.ShowDirsOnly )
-        if path !='':
-            print(path +" :")  # for debugging
-            files = sorted(os.listdir( path ))
+        
+        self.mainGui.set_calisma_klasoru(path)
+        self.mainGui.set_user(self.username)
 
-            # This would print all the files and directories
-            for file in files:
-                extension = file[-4:len(file)]
-                if  extension == '.jpg' or extension == '.JPG' or extension =='.bmp' or extension =='.BMP' or extension =='.png' or extension == 'PNG':
-                    print(file)
-            
+        if path !='':
             self.hide()        
 #            self.mainGui.show()
             self.mainGui.showMaximized()  
-
-            user_file = path +"/" + self.username+'.txt'
-            if os.path.exists(user_file):
-                print(user_file +' exists.')
-                file = open(user_file, 'r')
-                text = file.read()
-                print(text)
-                
-            else:
-                print(user_file +' did not exist. Newly created.\n')
-                file = open(user_file, 'w')
-                text = self.username + ' in tahminleri'
-                file.write(text)
-                file.close
-        
-#            file = open(name, 'r')
-#            print('na het inlezen gelukt') # for debugging
-        
-
-#            with file:
-#               text = file.read()
-#               self.textEdit.setText(text)
 
     def file_save(self):
         name, _ = QFileDialog.getSaveFileName(self,'Save File', options=QFileDialog.DontUseNativeDialog)
@@ -316,9 +386,9 @@ class loginWindow(QMainWindow):
             self.btnKlasor.setEnabled(False)            
         else:
             self.btnKlasor.setEnabled(True)
-            self.username = text
-        
-        
+            self.username = text.split('\n') # strip out the trailing '\n' in the file
+            self.username = self.username[0] # the split function generates an empty entry to its right, we discard it.
+           
 
     def close_application(self):
         sys.exit()        
