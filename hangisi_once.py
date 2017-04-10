@@ -112,7 +112,8 @@ class mainWindow(QWidget):
         
         grid = QGridLayout()   
 #        grid.setSpacing(10) 
-#        grid.setRowStretch(0,100)        
+        grid.setRowStretch(0,100)
+        grid.setRowStretch(1,1)
 
         grid.addWidget(self.pic1,0,0,Qt.AlignCenter)        
         grid.addWidget(self.radio1,1,0,Qt.AlignCenter)
@@ -338,11 +339,11 @@ class mainWindow(QWidget):
             
         self.image1 = QPixmap(self.calisma_klasoru + '/' + self.left_img_filename)
 #       self.pic1.setPixmap(self.image1)
-        self.pic1.setPixmap(self.image1.scaledToWidth(self.pic1.width()))
+        self.pic1.setPixmap(self.image1.scaled(int(self.width()*0.45), int(self.height()*0.9), Qt.KeepAspectRatio))
 
         self.image2 = QPixmap(self.calisma_klasoru + '/' + self.right_img_filename)
 #       self.pic2.setPixmap(self.image2)
-        self.pic2.setPixmap(self.image2.scaledToWidth(self.pic2.width()))
+        self.pic2.setPixmap(self.image2.scaled(int(self.width()*0.45), int(self.height()*0.9), Qt.KeepAspectRatio))
         
         self.radio1.setChecked(False)
         self.radio2.setChecked(False)
@@ -422,12 +423,16 @@ class loginWindow(QMainWindow):
         self.username = 'None'
         
         self.comboBox = QComboBox(self)
+        # bunun altındaki üç satır sırf isimler ortada çıksın diye.
+        self.comboBox.setEditable(True)
+        self.comboBox.lineEdit().setReadOnly(True)
+        self.comboBox.lineEdit().setAlignment(Qt.AlignCenter)        
         self.comboBox.addItem('Seciniz')
 
         if os.path.exists(os.getcwd()+"/users.txt"):
             users_file = open(os.getcwd()+"/users.txt","r")
             for line in users_file.readlines():
-                self.comboBox.addItem(line)            
+                self.comboBox.addItem(line)                            
         else:
             pass
 
@@ -436,7 +441,7 @@ class loginWindow(QMainWindow):
         users_file.close()
         
 
-        self.comboBox.setGeometry(100,65,200,30)         
+        self.comboBox.setGeometry(100,65,200,40)         
         self.comboBox.activated[str].connect(self.select_user)
         
         self.move(QApplication.desktop().screen().rect().center()- self.rect().center())
