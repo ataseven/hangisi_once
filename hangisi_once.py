@@ -61,7 +61,7 @@ class mainWindow(QWidget):
         width  = QApplication.desktop().screen().rect().width()-300
         height = QApplication.desktop().screen().rect().height()-300
         self.setGeometry(50, 50, width, height)                
-        
+        self.setMinimumSize(400,400)
         self.setWindowTitle('Hangisi önce?')                                                           
         
         
@@ -115,19 +115,35 @@ class mainWindow(QWidget):
         grid.setRowStretch(0,100)
         grid.setRowStretch(1,1)
 
-        grid.addWidget(self.pic1,0,0,Qt.AlignCenter)        
+#        grid.addWidget(self.button_iptal,0,1,Qt.AlignCenter)        
+        grid.addWidget(self.pic1,0,0,Qt.AlignCenter)
         grid.addWidget(self.radio1,1,0,Qt.AlignCenter)
         grid.addWidget(self.pic2,0,1,Qt.AlignCenter)
         grid.addWidget(self.radio2,1,1,Qt.AlignCenter)
 
         self.setLayout(grid)      
+
+        self.button_iptal1 = QPushButton('1. görüntüyü sil', self)        
+        self.button_iptal1.clicked.connect(self.goruntu1_iptal)
+        self.button_iptal1.setEnabled(True)
+        self.button_iptal1.setGeometry(int(width/4-45),int(20),90,30)
+        
+        self.button_iptal2 = QPushButton('2. görüntüyü sil', self)        
+        self.button_iptal2.clicked.connect(self.goruntu2_iptal)
+        self.button_iptal2.setEnabled(True)
+        self.button_iptal2.setGeometry(int(width*3/4-45),int(20),90,30)        
+
         self.move(QApplication.desktop().screen().rect().center()- self.rect().center())
+
+
         
         self.hastalar = []
         self.calisma_klasoru = '';
         self.username = ''
         self.current_pair_index = -1
         self.ikililer = []
+        self.ikililer_iptal = []
+        self.ikililer_iptal_index = -1  # an index that points to the ikililer_iptal array
         self.user_file =''
         
         self.left_img_filename =''
@@ -135,6 +151,105 @@ class mainWindow(QWidget):
 
     def home(self):
         self.show()
+        
+    def goruntu1_iptal(self):        
+        
+        if os.path.exists(self.ikili_iptal_filename):
+            ikili_iptal_file = open(self.ikili_iptal_filename, 'a')            
+        else:
+            ikili_iptal_file = open(self.ikili_iptal_filename, 'w')
+            
+        canceled_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
+        print('canceled: ' + canceled_filename)
+        hasta_id = int(self.right_img_filename.split('_')[0])
+
+        print('hasta id: ' + str(hasta_id))
+        ayni_hasta = True
+        pair_check_idx = self.current_pair_index
+        
+        while ayni_hasta:
+            
+            left_imgname = self.ikililer[pair_check_idx].split(' ')[0]
+            right_imgname = self.ikililer[pair_check_idx].split(' ')[1]
+            print('left: ' + left_imgname + ' right: ' + right_imgname)
+            checked_hasta_id = int(left_imgname.split('_')[0])
+
+            print('checked pair:' + str(pair_check_idx) + ' checked id:' + str(checked_hasta_id))
+            
+            if checked_hasta_id == hasta_id:
+                print('hastanin id tuttu')
+                if left_imgname == canceled_filename or right_imgname == canceled_filename:
+                    print('ikililerden birisi iptal edilenlerden, ikili iptal ediliyor')
+                    
+                    ikili_iptal_file.write(str(pair_check_idx) + '\n')
+                    self.ikililer_iptal.append(pair_check_idx)
+                    self.ikililer_iptal = sorted(list(set(self.ikililer_iptal))) # olmaz ama, olası duplikelerin önlemi olarak böyle bi şey yaptım.                
+            else:
+                ayni_hasta = False
+
+            pair_check_idx = pair_check_idx + 1
+            
+        ikili_iptal_file.close()
+
+        self.ikililer_iptal_index = self.ikililer_iptal_index + 1
+        if self.ikililer_iptal_index < len(self.ikililer_iptal)-1:
+            self.ikililer_iptal_index = self.ikililer_iptal_index + 1
+            
+        self.mark_sil(-1)
+        self.set_calisma_klasoru(self.calisma_klasoru)
+        self.set_user(self.username)
+        self.show_next_pair()
+            
+            
+    def goruntu2_iptal(self):
+        
+        if os.path.exists(self.ikili_iptal_filename):
+            ikili_iptal_file = open(self.ikili_iptal_filename, 'a')            
+        else:
+            ikili_iptal_file = open(self.ikili_iptal_filename, 'w')
+            
+        canceled_filename  = self.ikililer[self.current_pair_index].split(' ')[1]
+        print('canceled: ' + canceled_filename)
+        hasta_id = int(self.right_img_filename.split('_')[0])
+
+        print('hasta id: ' + str(hasta_id))
+        ayni_hasta = True
+        pair_check_idx = self.current_pair_index
+        
+        while ayni_hasta:
+            
+            left_imgname = self.ikililer[pair_check_idx].split(' ')[0]
+            right_imgname = self.ikililer[pair_check_idx].split(' ')[1]
+            print('left: ' + left_imgname + ' right: ' + right_imgname)
+            checked_hasta_id = int(left_imgname.split('_')[0])
+
+            print('checked pair:' + str(pair_check_idx) + ' checked id:' + str(checked_hasta_id))
+            
+            if checked_hasta_id == hasta_id:
+                print('hastanin id tuttu')
+                if left_imgname == canceled_filename or right_imgname == canceled_filename:
+                    print('ikililerden birisi iptal edilenlerden, ikili iptal ediliyor\n')
+                    
+                    ikili_iptal_file.write(str(pair_check_idx) + '\n')
+                    self.ikililer_iptal.append(pair_check_idx)
+                    self.ikililer_iptal = sorted(list(set(self.ikililer_iptal))) # olası duplikelerin önlemi olarak böyle bi şey yaptım.
+            else:
+                ayni_hasta = False
+
+            pair_check_idx = pair_check_idx + 1
+            
+        ikili_iptal_file.close()
+
+        self.ikililer_iptal_index = self.ikililer_iptal_index + 1
+        if self.ikililer_iptal_index < len(self.ikililer_iptal)-1:
+            self.ikililer_iptal_index = self.ikililer_iptal_index + 1
+
+        self.mark_sil(-2)
+        self.set_calisma_klasoru(self.calisma_klasoru)
+        self.set_user(self.username)
+        self.show_next_pair()
+
+        
         
 #    Kullanıcı "soldaki görüntü önce" derse yapılacaklar
     def mark1st(self):
@@ -235,6 +350,44 @@ class mainWindow(QWidget):
             
         self.radio2.setChecked(False)
 #        print('İkinci secildi') 
+
+#    Kullanıcı "soldaki görüntü önce" derse yapılacaklar
+    def mark_sil(self,silinen_idx):
+        file = open(self.user_file, 'a')
+        tmp_hasta = hasta()
+        
+        tmp_hasta.goruntu_ekle(self.left_img_filename)
+        tmp_hasta.goruntu_ekle(self.right_img_filename)
+        
+#        soldaki görüntünün tarihi
+        yil1 = tmp_hasta.tarihler[0][0]
+        ay1 = tmp_hasta.tarihler[0][1]
+        gun1 = tmp_hasta.tarihler[0][2]
+        
+        yil2 = tmp_hasta.tarihler[1][0]
+        ay2 = tmp_hasta.tarihler[1][1]
+        gun2 = tmp_hasta.tarihler[1][2]
+        
+        d0 = date(yil1, ay1, gun1)
+#        print(d0)
+#       sağdaki görüntünün tarihi
+        d1 = date(yil2, ay2, gun2)
+#        print(d1)
+        
+        if d0 > d1:  # doğru cevap : "sağdaki önce" ama kullanıcı "soldaki önce" demiş ki şu an içinde bulunduğumuz fonksiyona girmişiz
+            delta = d1 - d0            
+        elif d1 > d0:  # doğru cevap : "soldaki önce". Kullanıcı da "soldaki önce" demiş ki şu an içinde bulunduğumuz fonksiyona girmişiz
+            delta = d1 - d0
+        else:
+            delta = d1 - d0
+
+        tahmin = silinen_idx
+
+        zaman_farki = delta.days
+        
+        file.write(str(tmp_hasta.id) + ',' + str(tmp_hasta.yas) + ',' + tmp_hasta.cinsiyet + ',' + str(zaman_farki) + ',' + str(tahmin) + '\n' )
+        file.close()
+        
         
     def set_calisma_klasoru(self, text):
         self.calisma_klasoru = text;
@@ -291,6 +444,29 @@ class mainWindow(QWidget):
             lines = file_content.split('\n')    # dosya satırlarını bir array haline getir.
             self.ikililer = lines[:-1]          # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
                             
+            self.ikili_iptal_filename = self.calisma_klasoru +'/silinen_ikililer.txt'
+        
+            if os.path.exists(self.ikili_iptal_filename):
+                ikili_iptal_file = open(self.ikili_iptal_filename, 'r')
+                file_content = ikili_iptal_file.read()
+                ikili_iptal_file.close()
+                
+                tmp = file_content.split('\n')
+                tmp = tmp[:-1]
+                self.ikililer_iptal = [int(i) for i in tmp]
+                    
+                tmp = sorted(list(set(self.ikililer_iptal))) # remove any duplicates
+                
+                # there are duplicated entries of the silinen_ikililer.txt file, remove them and rewrite the file
+                if len(tmp) != self.ikililer_iptal:
+                    ikili_iptal_file = open(self.ikili_iptal_filename, 'w')
+
+                    for i in tmp:                    
+                        ikili_iptal_file.write(str(i)+'\n')
+                    ikili_iptal_file.close()
+                    
+                    self.ikililer_iptal = tmp
+                
 #            self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
 #            self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
 #                        
@@ -314,6 +490,8 @@ class mainWindow(QWidget):
 #            print(self.user_file +' exists.')
             file = open(self.user_file, 'r')
             file_content = file.read()
+            file.close()
+            
             lines = file_content.split('\n')   # dosya satırlarını bir array haline getir.
             lines = lines[:-1]  # yazma şeklim ve ilk satırdaki açıklama yüzünden fazladan iki satır geliyor, onu çıkar
             num_prev_entries = len(lines)
@@ -329,9 +507,55 @@ class mainWindow(QWidget):
                         
             file.write(text)
             file.close                        
-        
+            
+        # eğer kullanıcı tarafından daha önce işaretleme yapılmış ise, iptal edilenlerin pointer'ını kullanıcının ikili indeksinin olduğu yere getir.
+        # ilk gösterilecek ikili için current_pair_index 1 artırılacak, dolayısıyla kıyaslamanın < değil <= şeklinde olması gerekiyor.
+        if len(self.ikililer_iptal) > 0:
+            self.ikililer_iptal_index = 0
+            print(self.ikililer_iptal)
+            print(self.ikililer_iptal_index)
+            print(self.current_pair_index)
+            while self.ikililer_iptal[self.ikililer_iptal_index] <= self.current_pair_index:
+                self.ikililer_iptal_index = min(len(self.ikililer_iptal)-1, self.ikililer_iptal_index + 1)
+                if self.ikililer_iptal_index == len(self.ikililer_iptal)-1:
+                    break
+            
     def show_next_pair(self):
         self.current_pair_index = self.current_pair_index + 1
+
+        # Initialize filenames to avoid empty img filenames in case we come across a pair that is canceled by another user
+        self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
+        self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
+        
+        print('\npair idx:' + str(self.current_pair_index) + ' iptal idx:' + str(self.ikililer_iptal_index) )
+        print('len iptal:' + str(len(self.ikililer_iptal)))
+        if len(self.ikililer_iptal) > 0:
+            print('iptal:'+ str(self.ikililer_iptal[self.ikililer_iptal_index]))        
+        
+        if len(self.ikililer_iptal) > 0:
+            while  self.ikililer_iptal[self.ikililer_iptal_index] == self.current_pair_index :
+#                print(self.ikililer_iptal[self.ikililer_iptal_index])
+#                print(self.current_pair_index)
+                self.mark_sil(-3)
+                if self.ikililer_iptal_index < len(self.ikililer_iptal)-1:  # eğer iptal edilenler listesinin sonunda değilsen, listede bir ileri git
+                    self.ikililer_iptal_index = self.ikililer_iptal_index + 1        
+            
+            
+                if self.current_pair_index < len(self.ikililer)-1:   # eğer ikili listesinin sonunda değilsen, listede bir ileri git
+                    self.current_pair_index = self.current_pair_index + 1
+                else:                                                # ikililer listesinin sonundaysan, programı durdur
+                    self.radio1.setEnabled(False)
+                    self.radio2.setEnabled(False)
+                    self.button_iptal1.setEnabled(False)
+                    self.button_iptal2.setEnabled(False)
+                    self.infoBox.exec_()
+                    self.radio1.setChecked(False)                
+                    self.radio2.setChecked(False)
+                    return        
+
+        print('pair idx2:' + str(self.current_pair_index) + ' iptal idx2:' + str(self.ikililer_iptal_index) )
+        if len(self.ikililer_iptal) > 0:
+            print('iptal2:'+ str(self.ikililer_iptal[self.ikililer_iptal_index])+'\n\n')        
         
         self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
         self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
@@ -349,25 +573,27 @@ class mainWindow(QWidget):
         self.radio2.setChecked(False)
         
     def resizeEvent(self,event):
-        width  = QApplication.desktop().screen().rect().width()-30
-        height = QApplication.desktop().screen().rect().height()-30
+#        width  = QApplication.desktop().screen().rect().width()-30
+#        height = QApplication.desktop().screen().rect().height()-30
         
-        self.pic1.setGeometry(10, 10, width/2, height/2)
-        self.pic2.setGeometry(width/2+20, height/2+20, width/2, height/2 )
+#        self.pic1.setGeometry(10, 10, width/2, height/2)
+#        self.pic2.setGeometry(width/2+20, height/2+20, width/2, height/2 )
+#        
+#        self.image1.scaledToHeight(self.pic1.height())
+#        self.image2.scaledToHeight(self.pic2.height())
         
-        self.image1.scaledToHeight(self.pic1.height())
-        self.image2.scaledToHeight(self.pic2.height())
-        
-        w1 = self.pic1.width();
-        h1 = self.pic1.height();
-        w2 = self.pic2.width();
-        h2 = self.pic2.height();
+        w1 = int(self.width()*0.45);
+        h1 = int(self.height()*0.9);
+        w2 = int(self.width()*0.45);
+        h2 = int(self.height()*0.9);
         self.pic1.setPixmap(self.image1.scaled(w1, h1, Qt.KeepAspectRatio, Qt.SmoothTransformation ))
         self.pic2.setPixmap(self.image2.scaled(w2, h2, Qt.KeepAspectRatio, Qt.SmoothTransformation ))
         
 #        print('scaled')
         
-
+        self.button_iptal1.setGeometry(int(self.width()/4-45),int(20),120,30)
+        self.button_iptal2.setGeometry(int(self.width()*3/4-45),int(20),120,30)
+        
         return super(mainWindow, self).resizeEvent(event)
 
 
@@ -488,14 +714,7 @@ class loginWindow(QMainWindow):
                 self.mainGui.hide()
                 self.show()                
                 self.mainGui.infoBox.exec_()                   
-
-    def file_save(self):
-        name, _ = QFileDialog.getSaveFileName(self,'Save File', options=QFileDialog.DontUseNativeDialog)
-        file = open(name, 'w')
-        text = self.textEdit.toPlainText()
-        file.write(text)
-        file.close()
-
+                
 
     def home(self):       
 
