@@ -167,7 +167,7 @@ class mainWindow(QWidget):
         ayni_hasta = True
         pair_check_idx = self.current_pair_index
         
-        while ayni_hasta:
+        while ayni_hasta and pair_check_idx < len(self.ikililer):
             
             left_imgname = self.ikililer[pair_check_idx].split(' ')[0]
             right_imgname = self.ikililer[pair_check_idx].split(' ')[1]
@@ -198,7 +198,15 @@ class mainWindow(QWidget):
         self.mark_sil(-1)
         self.set_calisma_klasoru(self.calisma_klasoru)
         self.set_user(self.username)
-        self.show_next_pair()
+        
+        if self.current_pair_index < len(self.ikililer)-1:
+            self.show_next_pair()
+        else:            
+            self.radio1.setEnabled(False)
+            self.radio2.setEnabled(False)
+            self.button_iptal1.setEnabled(False)
+            self.button_iptal2.setEnabled(False)
+            self.infoBox.exec_()
             
             
     def goruntu2_iptal(self):
@@ -216,7 +224,7 @@ class mainWindow(QWidget):
         ayni_hasta = True
         pair_check_idx = self.current_pair_index
         
-        while ayni_hasta:
+        while ayni_hasta and pair_check_idx < len(self.ikililer):
             
             left_imgname = self.ikililer[pair_check_idx].split(' ')[0]
             right_imgname = self.ikililer[pair_check_idx].split(' ')[1]
@@ -247,7 +255,15 @@ class mainWindow(QWidget):
         self.mark_sil(-2)
         self.set_calisma_klasoru(self.calisma_klasoru)
         self.set_user(self.username)
-        self.show_next_pair()
+        
+        if self.current_pair_index < len(self.ikililer)-1:
+            self.show_next_pair()
+        else:            
+            self.radio1.setEnabled(False)
+            self.radio2.setEnabled(False)
+            self.button_iptal1.setEnabled(False)
+            self.button_iptal2.setEnabled(False)
+            self.infoBox.exec_()        
 
         
         
@@ -294,6 +310,8 @@ class mainWindow(QWidget):
         else:            
             self.radio1.setEnabled(False)
             self.radio2.setEnabled(False)
+            self.button_iptal1.setEnabled(False)
+            self.button_iptal2.setEnabled(False)
             self.infoBox.exec_()
         
         self.radio1.setChecked(False)
@@ -346,6 +364,8 @@ class mainWindow(QWidget):
         else:            
             self.radio1.setEnabled(False)
             self.radio2.setEnabled(False)
+            self.button_iptal1.setEnabled(False)
+            self.button_iptal2.setEnabled(False)
             self.infoBox.exec_()
             
         self.radio2.setChecked(False)
@@ -392,7 +412,7 @@ class mainWindow(QWidget):
     def set_calisma_klasoru(self, text):
         self.calisma_klasoru = text;
         current_hasta_id = -1
-        self.ikili_filename = self.calisma_klasoru +'/ikililer.txt'
+        self.ikili_filename = self.calisma_klasoru +'/.ikililer.txt'
         if self.calisma_klasoru !='':
 #            print(self.calisma_klasoru +" :")  # for debugging
             
@@ -401,7 +421,7 @@ class mainWindow(QWidget):
             
             else:
                 files = sorted(os.listdir( self.calisma_klasoru ))
-                ikili_file = open(self.calisma_klasoru +'/ikililer.txt', 'w')
+                ikili_file = open(self.calisma_klasoru +'/.ikililer.txt', 'w')
 
                 # This would print all the files and directories
                 for filename in files:
@@ -444,7 +464,7 @@ class mainWindow(QWidget):
             lines = file_content.split('\n')    # dosya satırlarını bir array haline getir.
             self.ikililer = lines[:-1]          # yazma şeklim yüzünden fazladan bir satır geliyor, onu çıkar
                             
-            self.ikili_iptal_filename = self.calisma_klasoru +'/silinen_ikililer.txt'
+            self.ikili_iptal_filename = self.calisma_klasoru +'/.silinen_ikililer.txt'
         
             if os.path.exists(self.ikili_iptal_filename):
                 ikili_iptal_file = open(self.ikili_iptal_filename, 'r')
@@ -483,7 +503,7 @@ class mainWindow(QWidget):
     def set_user(self, username):
         self.username = username;
 
-        self.user_file = self.calisma_klasoru + "/" + self.username + '.txt'        
+        self.user_file = self.calisma_klasoru + "/." + self.username + '.txt'        
                    
         
         if os.path.exists(self.user_file):
@@ -522,10 +542,18 @@ class mainWindow(QWidget):
             
     def show_next_pair(self):
         self.current_pair_index = self.current_pair_index + 1
-
-        # Initialize filenames to avoid empty img filenames in case we come across a pair that is canceled by another user
-        self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
-        self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
+        
+        if self.current_pair_index < len(self.ikililer):
+            # Initialize filenames to avoid empty img filenames in case we come across a pair that is canceled by another user
+            self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
+            self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
+        else:
+            self.radio1.setEnabled(False)
+            self.radio2.setEnabled(False)
+            self.button_iptal1.setEnabled(False)
+            self.button_iptal2.setEnabled(False)
+            self.infoBox.exec_()
+            return
         
         print('\npair idx:' + str(self.current_pair_index) + ' iptal idx:' + str(self.ikililer_iptal_index) )
         print('len iptal:' + str(len(self.ikililer_iptal)))
@@ -620,6 +648,10 @@ class loginWindow(QMainWindow):
         self.btnKlasor.clicked.connect(self.klasor_sec)
         self.btnKlasor.setEnabled(False)
         
+#        self.btnKlasor = QPushButton('Raporla', self)
+#        self.btnKlasor.move(150, 425)
+#        self.btnKlasor.clicked.connect(self.raporla)
+#        self.btnKlasor.setEnabled(True)
         
         self.statusBar()
         
@@ -762,7 +794,27 @@ class loginWindow(QMainWindow):
             self.btnKlasor.setEnabled(True)
             self.username = text.split('\n') # strip out the trailing '\n' in the file
             self.username = self.username[0] # the split function generates an empty entry to its right, we discard it.
-           
+
+    def raporla(self):
+#        path = QFileDialog.getExistingDirectory(self, "Klasör Seç",'',   QFileDialog.ShowDirsOnly )
+        
+        users_data=[]        
+        num_max_user_data = 0
+        
+        if os.path.exists(os.getcwd()+"/users.txt"):
+#            users_file = open(os.getcwd()+"/users.txt","r")
+#            output_file = open(path+'/Sonuclar.txt')
+#            for line in users_file.readlines():
+#                f_user = open(path + '/.' + line + 'txt','r')
+#                data = [user_line in f_user.readlines()]
+#                users_data.append(data)
+#                num_max_user_data = max(num_max_user_data,len(data))
+#            
+#            for i in range(num_max_user_data):
+                
+             pass
+        else:
+            pass
 
     def close_application(self):
         sys.exit()        
