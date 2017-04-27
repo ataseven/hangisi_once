@@ -109,6 +109,28 @@ class mainWindow(QWidget):
         self.infoBox.setStandardButtons(QMessageBox.Ok)        
         self.infoBox.setEscapeButton(QMessageBox.Close)   
 
+
+        self.raporBox = QMessageBox()        
+        self.raporBox.setIcon(QMessageBox.Information)
+#        self.infoBox.setText("Bu klasör tamam")
+        self.raporBox.setText("Rapor hazırlandı ve Sonuclar.txt dosyasına yazıldı.")
+#        self.infoBox.setInformativeText("Bu klasordeki bütün verileri oyladınız.")        
+        self.raporBox.setWindowTitle("Raporlandı")
+#        self.infoBox.setDetailedText("Daha ne detay vereyim, anlattım işte...")
+        self.raporBox.setStandardButtons(QMessageBox.Ok)        
+        self.raporBox.setEscapeButton(QMessageBox.Close)
+
+        self.errBox = QMessageBox()        
+        self.errBox.setIcon(QMessageBox.Information)
+#        self.infoBox.setText("Bu klasör tamam")
+        self.errBox.setText("Kullanıcıların bilgisine ulaşılamadı. users.txt dosyası bulunamadı.")
+#        self.infoBox.setInformativeText("Bu klasordeki bütün verileri oyladınız.")        
+        self.errBox.setWindowTitle("Raporlama hatası")
+#        self.infoBox.setDetailedText("Daha ne detay vereyim, anlattım işte...")
+        self.errBox.setStandardButtons(QMessageBox.Ok)
+        self.errBox.setEscapeButton(QMessageBox.Close)
+        
+        
         
         grid = QGridLayout()   
 #        grid.setSpacing(10) 
@@ -532,9 +554,9 @@ class mainWindow(QWidget):
         # ilk gösterilecek ikili için current_pair_index 1 artırılacak, dolayısıyla kıyaslamanın < değil <= şeklinde olması gerekiyor.
         if len(self.ikililer_iptal) > 0:
             self.ikililer_iptal_index = 0
-            print(self.ikililer_iptal)
-            print(self.ikililer_iptal_index)
-            print(self.current_pair_index)
+#            print(self.ikililer_iptal)
+#            print(self.ikililer_iptal_index)
+#            print(self.current_pair_index)
             while self.ikililer_iptal[self.ikililer_iptal_index] <= self.current_pair_index:
                 self.ikililer_iptal_index = min(len(self.ikililer_iptal)-1, self.ikililer_iptal_index + 1)
                 if self.ikililer_iptal_index == len(self.ikililer_iptal)-1:
@@ -555,10 +577,10 @@ class mainWindow(QWidget):
             self.infoBox.exec_()
             return
         
-        print('\npair idx:' + str(self.current_pair_index) + ' iptal idx:' + str(self.ikililer_iptal_index) )
-        print('len iptal:' + str(len(self.ikililer_iptal)))
-        if len(self.ikililer_iptal) > 0:
-            print('iptal:'+ str(self.ikililer_iptal[self.ikililer_iptal_index]))        
+#        print('\npair idx:' + str(self.current_pair_index) + ' iptal idx:' + str(self.ikililer_iptal_index) )
+#        print('len iptal:' + str(len(self.ikililer_iptal)))
+#        if len(self.ikililer_iptal) > 0:
+#            print('iptal:'+ str(self.ikililer_iptal[self.ikililer_iptal_index]))        
         
         if len(self.ikililer_iptal) > 0:
             while  self.ikililer_iptal[self.ikililer_iptal_index] == self.current_pair_index :
@@ -581,9 +603,9 @@ class mainWindow(QWidget):
                     self.radio2.setChecked(False)
                     return        
 
-        print('pair idx2:' + str(self.current_pair_index) + ' iptal idx2:' + str(self.ikililer_iptal_index) )
-        if len(self.ikililer_iptal) > 0:
-            print('iptal2:'+ str(self.ikililer_iptal[self.ikililer_iptal_index])+'\n\n')        
+#        print('pair idx2:' + str(self.current_pair_index) + ' iptal idx2:' + str(self.ikililer_iptal_index) )
+#        if len(self.ikililer_iptal) > 0:
+#            print('iptal2:'+ str(self.ikililer_iptal[self.ikililer_iptal_index])+'\n\n')        
         
         self.left_img_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
         self.right_img_filename = self.ikililer[self.current_pair_index].split(' ')[1]
@@ -648,10 +670,10 @@ class loginWindow(QMainWindow):
         self.btnKlasor.clicked.connect(self.klasor_sec)
         self.btnKlasor.setEnabled(False)
         
-#        self.btnKlasor = QPushButton('Raporla', self)
-#        self.btnKlasor.move(150, 425)
-#        self.btnKlasor.clicked.connect(self.raporla)
-#        self.btnKlasor.setEnabled(True)
+        self.btnRapor = QPushButton('Raporla', self)
+        self.btnRapor.move(150, 425)
+        self.btnRapor.clicked.connect(self.raporla)
+        self.btnRapor.setEnabled(True)
         
         self.statusBar()
         
@@ -664,8 +686,8 @@ class loginWindow(QMainWindow):
         self.textEdit.setAlignment(Qt.AlignCenter)
         self.textEdit.setEnabled(False)
 
-        exitAction = QAction(QIcon('pic.png'), 'flee the scene', self)
-        exitAction.triggered.connect(self.close_application)
+#        exitAction = QAction(QIcon('pic.png'), 'flee the scene', self)
+#        exitAction.triggered.connect(self.close_application)
 
         self.radioVarolan = QRadioButton('Varolan kullanıcı',self)
 #        self.radio2.move(1400,850)
@@ -796,25 +818,85 @@ class loginWindow(QMainWindow):
             self.username = self.username[0] # the split function generates an empty entry to its right, we discard it.
 
     def raporla(self):
-#        path = QFileDialog.getExistingDirectory(self, "Klasör Seç",'',   QFileDialog.ShowDirsOnly )
+        path = QFileDialog.getExistingDirectory(self, "Klasör Seç",'',   QFileDialog.ShowDirsOnly )
         
-        users_data=[]        
+        users_data=[]
+        pairs = []
         num_max_user_data = 0
+        write_pair = False
+
+#        if os.path.exists(path +'/.ikililer.txt'):
+#            f_ikililer = open(path +'/.ikililer.txt','r')
+#            for line in f_ikililer.readlines():                
+#                hasta_data = line.split('_')
+#                print(hasta_data)
+#                pairs.append(hasta_data)
+#        else:
+#            pass
+            
         
         if os.path.exists(os.getcwd()+"/users.txt"):
-#            users_file = open(os.getcwd()+"/users.txt","r")
-#            output_file = open(path+'/Sonuclar.txt')
-#            for line in users_file.readlines():
-#                f_user = open(path + '/.' + line + 'txt','r')
-#                data = [user_line in f_user.readlines()]
-#                users_data.append(data)
-#                num_max_user_data = max(num_max_user_data,len(data))
-#            
-#            for i in range(num_max_user_data):
+            users_file = open(os.getcwd()+"/users.txt","r")
+            output_file = open(path+'/Sonuclar.txt','w')
+            output_file.write('Hasta ID,Hasta Yasi,Hasta Cinsiyeti,Gun Farki')
+            
+            for line in users_file.readlines():
+                user_fname = path + '/.' + line.split('\n')[0] + '.txt'
+#                print(user_fname)
                 
-             pass
+                if os.path.exists(user_fname):
+                    f_user = open(user_fname,'r')
+                    data = [user_line.split('\n')[0] for user_line in f_user.readlines()]  # here, the data are taken as a string array
+                    data = data[1:] # first line is info line, discard it.                    
+#                    print(data)
+                    users_data.append(data) # users_data is an array of string arrays, its length is "number of users", and in each entry, there is a list of strings that iterates on image pairs that each user has evaluated
+                
+                    num_max_user_data = max(num_max_user_data,len(data))
+                else:
+                    users_data.append([]) # this user has not made any evaluations on this folder yet
+                
+                output_file.write( ',' + line.split('\n')[0])
+                
+#            print(users_data)
+
+            output_file.write('\n')
+            
+            num_users = len(users_data)
+
+#            print('num_max_user_data = '+str(num_max_user_data) + 'num_users = ' + str(num_users))
+            
+            for i in range(num_max_user_data):                
+                user_scores = ''
+                write_pair = True
+                for u in range(num_users):
+                    if len(users_data[u])-1 < i:
+                        user_scores = user_scores + ',-1';
+                    else:
+                        user_score = int(users_data[u][i].split(',')[4])                        
+                        if user_score < 0:
+                            write_pair = False
+#                            print('dohtor!')
+                        else:                            
+                            hasta_info = users_data[u][i].split(',')[0]+ ',' + users_data[u][i].split(',')[1] + ',' + users_data[u][i].split(',')[2] + ',' + users_data[u][i].split(',')[3] 
+                            user_scores = user_scores + ',' + str(user_score) 
+
+                if write_pair:                
+                    output_file.write(hasta_info  + user_scores + '\n')
+            
+            output_file.close()
+            self.mainGui.raporBox.exec_()
+
         else:
-            pass
+            self.mainGui.errBox.exec_()
+
+        self.textEdit.clear()
+        self.textEdit.setEnabled(False)
+        self.comboBox.setEnabled(False)
+        self.radioVarolan.setEnabled(False)
+        self.radioYeni.setEnabled(False)
+        self.btnEkle.setEnabled(False)
+        self.btnRapor.setEnabled(False)
+            
 
     def close_application(self):
         sys.exit()        
