@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QAction , QApplication, QMainWindow, QGridLayout, QW
 from PyQt5.QtCore import QCoreApplication, Qt
 
 from datetime import date
+import datetime as dt
 
 #from PyQt4 import *
 
@@ -28,15 +29,28 @@ class hasta():
     # hasta id'si ayni olan imajlar içinde, alfabetik sırada son sırada olan dosyada yazan hasta bilgisi kullanılır.
     def goruntu_ekle(self,text):
         groups = text.split('_')
-#        print(groups)
-        self.id = int( groups[0] )
-        self.yas = int( groups[1] )
-        gun = int( groups[2][0:2] )
-        ay  = int( groups[2][2:4] )
-        yil = int( groups[2][4:8] )       
-        self.cinsiyet = groups[3].split('.')[0]
+        print(groups)
+        self.id = groups[0] 
+        self.cinsiyet = groups[1]
+
+        # dogum gununu oku ve yasi hesapla        
+        dogum_yili = int(groups[2])
+        dogum_ayi = int(groups[3])
+        dogum_gunu = int(groups[4])
+        today = dt.datetime.now()
+        self. yas = today.year - dogum_yili
+        # Eger bu yil icerisinde hastanin dogum gunu gecmemis ise; hasta, aradaki yil farkindan bir yas genc demektir.
+        if today.month < dogum_ayi or ( today.month == dogum_ayi and today.day < dogum_gunu ):
+            self.yas = self.yas -1
         
-        self.tarihler.append([yil, ay, gun])
+        # kayit tarihini oku 
+        kayit_yil = int( groups[5] )        
+        kayit_ay  = int( groups[6] )
+        kayit_gun = int( groups[7] )        
+
+#        self.cinsiyet = groups[3].split('.')[0]
+        
+        self.tarihler.append([kayit_yil, kayit_ay, kayit_gun])
         self.dosya_isimleri.append(text)
         
     def compute_days(self,year1, month1, day1, year2, month2, day2):        
@@ -183,7 +197,7 @@ class mainWindow(QWidget):
             
         canceled_filename  = self.ikililer[self.current_pair_index].split(' ')[0]
         print('canceled: ' + canceled_filename)
-        hasta_id = int(self.right_img_filename.split('_')[0])
+        hasta_id = self.right_img_filename.split('_')[0]
 
         print('hasta id: ' + str(hasta_id))
         ayni_hasta = True
@@ -194,7 +208,7 @@ class mainWindow(QWidget):
             left_imgname = self.ikililer[pair_check_idx].split(' ')[0]
             right_imgname = self.ikililer[pair_check_idx].split(' ')[1]
             print('left: ' + left_imgname + ' right: ' + right_imgname)
-            checked_hasta_id = int(left_imgname.split('_')[0])
+            checked_hasta_id = left_imgname.split('_')[0]
 
             print('checked pair:' + str(pair_check_idx) + ' checked id:' + str(checked_hasta_id))
             
@@ -240,7 +254,7 @@ class mainWindow(QWidget):
             
         canceled_filename  = self.ikililer[self.current_pair_index].split(' ')[1]
         print('canceled: ' + canceled_filename)
-        hasta_id = int(self.right_img_filename.split('_')[0])
+        hasta_id = self.right_img_filename.split('_')[0]
 
         print('hasta id: ' + str(hasta_id))
         ayni_hasta = True
@@ -251,7 +265,7 @@ class mainWindow(QWidget):
             left_imgname = self.ikililer[pair_check_idx].split(' ')[0]
             right_imgname = self.ikililer[pair_check_idx].split(' ')[1]
             print('left: ' + left_imgname + ' right: ' + right_imgname)
-            checked_hasta_id = int(left_imgname.split('_')[0])
+            checked_hasta_id = left_imgname.split('_')[0]
 
             print('checked pair:' + str(pair_check_idx) + ' checked id:' + str(checked_hasta_id))
             
@@ -433,7 +447,7 @@ class mainWindow(QWidget):
         
     def set_calisma_klasoru(self, text):
         self.calisma_klasoru = text;
-        current_hasta_id = -1
+        current_hasta_id = None
         self.ikili_filename = self.calisma_klasoru +'/.ikililer.txt'
         if self.calisma_klasoru !='':
 #            print(self.calisma_klasoru +" :")  # for debugging
@@ -443,6 +457,7 @@ class mainWindow(QWidget):
             
             else:
                 files = sorted(os.listdir( self.calisma_klasoru ))
+                print(files)
                 ikili_file = open(self.calisma_klasoru +'/.ikililer.txt', 'w')
 
                 # This would print all the files and directories
@@ -451,16 +466,16 @@ class mainWindow(QWidget):
                     
                     if  extension == '.jpg' or extension == '.JPG' or extension =='.bmp' or extension =='.BMP' or extension =='.png' or extension == 'PNG':
                         groups = filename.split('_')
-                        ID = int(groups[0])
+                        ID = groups[0]
                         
                         # eğer bu hastanın daha önce bir dosyası işlendiyse, o hasta ile ilgili yeni tarih ve dosya ismi ekle
-                        if current_hasta_id == ID and current_hasta_id >= 0: 
+                        if current_hasta_id == ID and current_hasta_id != None: 
                             self.hastalar[-1].goruntu_ekle(filename)
                         
                         else: 
 
                             # bir önceki hastanın ikililerini belirle ve ikililer.txt dosyasına yaz.        
-                            if current_hasta_id >= 0:  # ilk hastadan öncesi yok. ilk hastaya özel muamele yapılıyo.
+                            if current_hasta_id != None:  # ilk hastadan öncesi yok. ilk hastaya özel muamele yapılıyo.
                                 for pair in itertools.combinations( self.hastalar[-1].getFileNames() , 2):
                                     idx  = random.randint(0,1)
                                     ikili_file.write( pair[idx] + ' ' + pair[1-idx] + '\n' )
