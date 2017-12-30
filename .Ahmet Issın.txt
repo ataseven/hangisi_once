@@ -1,1 +1,0 @@
-Ahmet Issın in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru 0:yanlış)
