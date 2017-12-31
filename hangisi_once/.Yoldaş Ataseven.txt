@@ -1,4 +1,4 @@
-mahmut in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru , 0:yanlış , -1:kullanıcı goruntu 1i iptal etti, -2:kullanici goruntu 2yi iptal etti, -3: bu ikili baska bir kullanici tarafindan iptal edilmisti)
+Yoldaş Ataseven in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru , 0:yanlış , -1:kullanıcı goruntu 1i iptal etti, -2:kullanici goruntu 2yi iptal etti, -3: bu ikili baska bir kullanici tarafindan iptal edilmisti)
 L000003,72,M,-325,1
 L000003,72,M,-616,1
 L000003,72,M,690,-3

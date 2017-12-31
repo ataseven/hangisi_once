@@ -560,7 +560,7 @@ class mainWindow(QWidget):
         else:
 #            print(self.user_file +' did not exist. Newly created.\n')
             file = open(self.user_file, 'w')
-            text = self.username + ' in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru 0:yanlış)\n'
+            text = self.username + ' in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru , 0:yanlış , -1:kullanıcı goruntu 1 i iptal etti, -2:kullanici goruntu 2 yi iptal etti, -3: bu ikili baska bir kullanici tarafindan iptal edilmisti)\n'
                         
             file.write(text)
             file.close                        
@@ -874,7 +874,7 @@ class loginWindow(QMainWindow):
                 
 #            print(users_data)
 
-            output_file.write('\n')
+            output_file.write('  (0: yanlis , 1: dogru , -1: kullanici henuz tahmin yapmadi)\n')
             
             num_users = len(users_data)
 
