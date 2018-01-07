@@ -29,7 +29,7 @@ class hasta():
     # hasta id'si ayni olan imajlar içinde, alfabetik sırada son sırada olan dosyada yazan hasta bilgisi kullanılır.
     def goruntu_ekle(self,text):
         groups = text.split('_')
-        print(groups)
+#        print(groups)
         self.id = groups[0] 
         self.cinsiyet = groups[1]
 
@@ -112,6 +112,10 @@ class mainWindow(QWidget):
 #        self.radio2.move(1400,850)
         self.radio2.clicked.connect(self.mark2nd)
 
+        self.radio0 = QRadioButton('Fark yok',self)
+#        self.radio2.move(1400,850)
+        self.radio0.clicked.connect(self.markNone)
+
         self.infoBox = QMessageBox() ##Message Box that doesn't run
 
         self.infoBox.setIcon(QMessageBox.Information)
@@ -156,6 +160,7 @@ class mainWindow(QWidget):
         grid.addWidget(self.radio1,1,0,Qt.AlignCenter)
         grid.addWidget(self.pic2,0,1,Qt.AlignCenter)
         grid.addWidget(self.radio2,1,1,Qt.AlignCenter)
+        grid.addWidget(self.radio0,1,1,Qt.AlignLeft)
 
         self.setLayout(grid)      
 
@@ -167,7 +172,10 @@ class mainWindow(QWidget):
         self.button_iptal2 = QPushButton('2. görüntüyü sil', self)        
         self.button_iptal2.clicked.connect(self.goruntu2_iptal)
         self.button_iptal2.setEnabled(True)
-        self.button_iptal2.setGeometry(int(width*3/4-45),int(20),90,30)        
+#        self.button_iptal2.setGeometry(int(width*3/4-45),int(20),90,30)  
+        
+        self.radio0.setEnabled(True)
+        self.radio0.setGeometry(int(width/2-45),int(height-50),90,30)  
 
         self.move(QApplication.desktop().screen().rect().center()- self.rect().center())
 
@@ -240,6 +248,7 @@ class mainWindow(QWidget):
         else:            
             self.radio1.setEnabled(False)
             self.radio2.setEnabled(False)
+            self.radio0.setEnabled(False)
             self.button_iptal1.setEnabled(False)
             self.button_iptal2.setEnabled(False)
             self.infoBox.exec_()
@@ -297,11 +306,54 @@ class mainWindow(QWidget):
         else:            
             self.radio1.setEnabled(False)
             self.radio2.setEnabled(False)
+            self.radio0.setEnabled(False)
             self.button_iptal1.setEnabled(False)
             self.button_iptal2.setEnabled(False)
             self.infoBox.exec_()        
 
         
+#    Kullanıcı "fark yok" derse yapılacaklar
+    def markNone(self):
+        file = open(self.user_file, 'a')
+        tmp_hasta = hasta()
+        
+        tmp_hasta.goruntu_ekle(self.left_img_filename)
+        tmp_hasta.goruntu_ekle(self.right_img_filename)
+        
+#        soldaki görüntünün tarihi
+        yil1 = tmp_hasta.tarihler[0][0]
+        ay1 = tmp_hasta.tarihler[0][1]
+        gun1 = tmp_hasta.tarihler[0][2]
+        
+        yil2 = tmp_hasta.tarihler[1][0]
+        ay2 = tmp_hasta.tarihler[1][1]
+        gun2 = tmp_hasta.tarihler[1][2]
+        
+        d0 = date(yil1, ay1, gun1)
+#        print(d0)
+#       sağdaki görüntünün tarihi
+        d1 = date(yil2, ay2, gun2)
+#        print(d1)
+        
+        delta = d1 - d0
+        tahmin = 5
+        
+        zaman_farki = delta.days
+        
+        file.write(str(tmp_hasta.id) + ',' + str(tmp_hasta.yas) + ',' + tmp_hasta.cinsiyet + ',' + str(zaman_farki) + ',' + str(tahmin) + '\n' )
+        file.close()
+        
+        if self.current_pair_index < len(self.ikililer)-1:
+            self.show_next_pair()
+        else:            
+            self.radio1.setEnabled(False)
+            self.radio2.setEnabled(False)
+            self.radio0.setEnabled(False)
+            self.button_iptal1.setEnabled(False)
+            self.button_iptal2.setEnabled(False)
+            self.infoBox.exec_()
+        
+        self.radio0.setChecked(False)
         
 #    Kullanıcı "soldaki görüntü önce" derse yapılacaklar
     def mark1st(self):
@@ -346,6 +398,7 @@ class mainWindow(QWidget):
         else:            
             self.radio1.setEnabled(False)
             self.radio2.setEnabled(False)
+            self.radio0.setEnabled(False)
             self.button_iptal1.setEnabled(False)
             self.button_iptal2.setEnabled(False)
             self.infoBox.exec_()
@@ -400,6 +453,7 @@ class mainWindow(QWidget):
         else:            
             self.radio1.setEnabled(False)
             self.radio2.setEnabled(False)
+            self.radio0.setEnabled(False)
             self.button_iptal1.setEnabled(False)
             self.button_iptal2.setEnabled(False)
             self.infoBox.exec_()
@@ -443,6 +497,10 @@ class mainWindow(QWidget):
         
         file.write(str(tmp_hasta.id) + ',' + str(tmp_hasta.yas) + ',' + tmp_hasta.cinsiyet + ',' + str(zaman_farki) + ',' + str(tahmin) + '\n' )
         file.close()
+        
+        self.radio1.setChecked(False)
+        self.radio2.setChecked(False)
+        self.radio0.setChecked(False)
         
         
     def set_calisma_klasoru(self, text):
@@ -560,7 +618,7 @@ class mainWindow(QWidget):
         else:
 #            print(self.user_file +' did not exist. Newly created.\n')
             file = open(self.user_file, 'w')
-            text = self.username + ' in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru , 0:yanlış , -1:kullanıcı goruntu 1 i iptal etti, -2:kullanici goruntu 2 yi iptal etti, -3: bu ikili baska bir kullanici tarafindan iptal edilmisti)\n'
+            text = self.username + ' in tahminleri. Sıralama: ID, yaş, cinsiyet, zaman farkı(gün), tahmin (1:doğru , 0:yanlış , 5:fark yok , -1:kullanıcı goruntu 1 i iptal etti, -2:kullanici goruntu 2 yi iptal etti, -3: bu ikili baska bir kullanici tarafindan iptal edilmisti)\n'
                         
             file.write(text)
             file.close                        
@@ -611,11 +669,13 @@ class mainWindow(QWidget):
                 else:                                                # ikililer listesinin sonundaysan, programı durdur
                     self.radio1.setEnabled(False)
                     self.radio2.setEnabled(False)
+                    self.radio0.setEnabled(False)
                     self.button_iptal1.setEnabled(False)
                     self.button_iptal2.setEnabled(False)
                     self.infoBox.exec_()
                     self.radio1.setChecked(False)                
                     self.radio2.setChecked(False)
+                    self.radio0.setChecked(False)
                     return        
 
 #        print('pair idx2:' + str(self.current_pair_index) + ' iptal idx2:' + str(self.ikililer_iptal_index) )
@@ -634,8 +694,11 @@ class mainWindow(QWidget):
 #       self.pic2.setPixmap(self.image2)
         self.pic2.setPixmap(self.image2.scaled(int(self.width()*0.45), int(self.height()*0.9), Qt.KeepAspectRatio))
         
+                           
         self.radio1.setChecked(False)
         self.radio2.setChecked(False)
+        self.radio0.setChecked(False)
+        
         
     def resizeEvent(self,event):
 #        width  = QApplication.desktop().screen().rect().width()-30
@@ -874,7 +937,7 @@ class loginWindow(QMainWindow):
                 
 #            print(users_data)
 
-            output_file.write('  (0: yanlis , 1: dogru , -1: kullanici henuz tahmin yapmadi)\n')
+            output_file.write('  (0: yanlis , 1: dogru , 5: "fark yok" dedi, -1: kullanici henuz tahmin yapmadi)\n')
             
             num_users = len(users_data)
 
